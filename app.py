@@ -55,7 +55,9 @@ HTML = """
         .card{background:rgba(255,255,255,0.05);backdrop-filter:blur(10px);border-radius:20px;padding:20px;text-align:center;border:1px solid rgba(255,215,0,0.3);flex:1;min-width:200px;max-width:250px}
         .btn{background:linear-gradient(135deg,#ffd700,#ff8c00);color:#000;padding:12px;border:none;border-radius:50px;font-weight:bold;cursor:pointer;width:100%;margin-top:10px}
         .btn-secondary{background:linear-gradient(135deg,#1a1a2e,#16213e);border:2px solid #ffd700;color:#ffd700}
+        /* منع ظهور رسالة حفظ كلمة المرور من المتصفح */
         input{width:100%;padding:12px;margin:8px 0;background:rgba(0,0,0,0.6);border:1px solid #ffd700;border-radius:30px;color:#fff}
+        input:focus{outline:none}
         .prediction-card{background:linear-gradient(135deg,#1a1a2e,#16213e);border-radius:30px;padding:30px;text-align:center;border:2px solid #ffd700;margin:20px 0;position:relative}
         .hacker-overlay{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;overflow:hidden;border-radius:30px}
         .hacker-overlay span{position:absolute;font-size:10px;color:#00aaff;opacity:0.4;white-space:nowrap}
@@ -124,7 +126,6 @@ HTML = """
     }
     function toggleTheme() { document.body.classList.toggle('light-mode'); closeSidebar(); }
     
-    // دالة تسجيل الخروج (فقط من هنا)
     function logout() { 
         fetch('/logout'); 
         localStorage.removeItem('loggedInUserId'); 
@@ -166,8 +167,8 @@ HTML = """
         link: `
             <h2 style="text-align:center;color:#ffd700;">🔗 ربط الحساب</h2>
             <div class="card">
-                <input type="text" id="uid" placeholder="معرف ID (10 أرقام فقط)">
-                <input type="password" id="pwd" placeholder="كلمة المرور">
+                <input type="text" id="uid" placeholder="معرف ID (10 أرقام فقط)" autocomplete="off">
+                <input type="password" id="pwd" placeholder="كلمة المرور" autocomplete="off">
                 <button class="btn" onclick="submitLogin()">تسجيل الدخول</button>
                 <div style="margin-top:15px;"><a href="#" onclick="showPage('welcome'); return false;" style="color:#ffd700;">← العودة</a></div>
             </div>
@@ -203,7 +204,8 @@ HTML = """
                     🔹 فريق الدعم متاح عبر تليجرام @hkarz1xbetAmeen54bot<br><br>
                     🔹 باستخدامك هذا النظام، أنت توافق على هذه الشروط.
                 </p>
-                <button class="btn" onclick="showPage('welcome')">← موافق</button>
+                <!-- زر موافق يعيد إلى صفحة التوقعات (وليس تسجيل خروج) -->
+                <button class="btn" onclick="showPage('predictor')">← موافق</button>
             </div>
         `
     };
@@ -250,16 +252,13 @@ HTML = """
         if(data.success) {
             currentUserId = uid;
             localStorage.setItem('loggedInUserId', uid);
-            // التحقق مما إذا كان هذا المعرف قد شاهد الإعلان من قبل
             const shownIds = JSON.parse(localStorage.getItem('shownFreeTrialIds') || '[]');
             if(!shownIds.includes(uid)) {
-                // إظهار الإعلان المتحرك
                 const modal = document.getElementById('freeTrialModal');
                 const overlay = document.getElementById('modalOverlay');
                 modal.classList.add('active');
                 overlay.classList.add('active');
                 freeTrialShownForSession = true;
-                // حفظ المعرف في قائمة الذين شاهدوا الإعلان
                 shownIds.push(uid);
                 localStorage.setItem('shownFreeTrialIds', JSON.stringify(shownIds));
             } else {
