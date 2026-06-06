@@ -29,6 +29,22 @@ HTML = """
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Crash Predictor | Aviator AI</title>
+    
+    <!-- ========== OG IMAGE - صورة الأيقونة للتواصل الاجتماعي ========== -->
+    <meta property="og:title" content="🔥 Crash Predictor | Aviator AI">
+    <meta property="og:description" content="نظام توقعات احترافي للعبة Crash | توقعات دقيقة ونتائج فورية">
+    <meta property="og:image" content="https://i.ibb.co/fdjQCQRf/images-1.jpg">
+    <meta property="og:image:width" content="512">
+    <meta property="og:image:height" content="512">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{request.url}}">
+    
+    <!-- Twitter Card (لـ X) -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="🔥 Crash Predictor | Aviator AI">
+    <meta name="twitter:description" content="نظام توقعات احترافي للعبة Crash">
+    <meta name="twitter:image" content="https://i.ibb.co/fdjQCQRf/images-1.jpg">
+    
     <style>
         *{margin:0;padding:0;box-sizing:border-box}
         body{background:#0a0f1e;color:#fff;font-family:'Segoe UI',sans-serif;text-align:center;padding:20px;transition:0.3s;overflow-x:hidden}
@@ -55,9 +71,7 @@ HTML = """
         .card{background:rgba(255,255,255,0.05);backdrop-filter:blur(10px);border-radius:20px;padding:20px;text-align:center;border:1px solid rgba(255,215,0,0.3);flex:1;min-width:200px;max-width:250px}
         .btn{background:linear-gradient(135deg,#ffd700,#ff8c00);color:#000;padding:12px;border:none;border-radius:50px;font-weight:bold;cursor:pointer;width:100%;margin-top:10px}
         .btn-secondary{background:linear-gradient(135deg,#1a1a2e,#16213e);border:2px solid #ffd700;color:#ffd700}
-        /* منع ظهور رسالة حفظ كلمة المرور من المتصفح */
-        input{width:100%;padding:12px;margin:8px 0;background:rgba(0,0,0,0.6);border:1px solid #ffd700;border-radius:30px;color:#fff}
-        input:focus{outline:none}
+        input{width:100%;padding:12px;margin:8px 0;background:rgba(0,0,0,0.6);border:1px solid #ffd700;border-radius:30px;color:#fff;autocomplete:off}
         .prediction-card{background:linear-gradient(135deg,#1a1a2e,#16213e);border-radius:30px;padding:30px;text-align:center;border:2px solid #ffd700;margin:20px 0;position:relative}
         .hacker-overlay{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;overflow:hidden;border-radius:30px}
         .hacker-overlay span{position:absolute;font-size:10px;color:#00aaff;opacity:0.4;white-space:nowrap}
@@ -204,7 +218,6 @@ HTML = """
                     🔹 فريق الدعم متاح عبر تليجرام @hkarz1xbetAmeen54bot<br><br>
                     🔹 باستخدامك هذا النظام، أنت توافق على هذه الشروط.
                 </p>
-                <!-- زر موافق يعيد إلى صفحة التوقعات (وليس تسجيل خروج) -->
                 <button class="btn" onclick="showPage('predictor')">← موافق</button>
             </div>
         `
@@ -296,7 +309,7 @@ HTML = """
 
 @app.route('/')
 def home():
-    return render_template_string(HTML, user_id=session.get('user_id', 'ضيف'))
+    return render_template_string(HTML, user_id=session.get('user_id', 'ضيف'), request=request)
 
 @app.route('/login', methods=['POST'])
 def login():
